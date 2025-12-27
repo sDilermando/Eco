@@ -3,383 +3,606 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoRota - Mobilidade P2P Sustentável</title>
+    <title>GreenMatch - Serviços Sustentáveis P2P</title>
     <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-database-compat.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/imask"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <style>
+        :root {
+            --emerald: #10b981;
+            --emerald-dark: #059669;
+            --slate-900: #0f172a;
+            --slate-800: #1e293b;
+            --slate-700: #334155;
+            --slate-600: #475569;
+            --slate-200: #e2e8f0;
+            --white: #f8fafc;
+            --gradient: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
+            --shadow: 0 10px 40px rgba(16, 185, 129, 0.2);
+            --shadow-hover: 0 20px 60px rgba(16, 185, 129, 0.3);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: #f1f5f9;
+            font-family: 'Poppins', sans-serif;
+            background: var(--slate-900);
+            color: var(--white);
             overflow-x: hidden;
             min-height: 100vh;
             position: relative;
         }
+
+        .glass-effect {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
         .container {
-            max-width: 400px;
+            max-width: 420px;
             margin: 0 auto;
             padding: 20px;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
-        .logo {
+
+        /* Header Hero */
+        .hero {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
+            padding: 40px 20px;
         }
-        .logo h1 {
-            background: linear-gradient(45deg, #059669, #10b981);
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: var(--gradient);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: var(--shadow);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .logo i { font-size: 2.5rem; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        h1 {
+            font-size: clamp(1.8rem, 5vw, 2.5rem);
+            font-weight: 700;
+            background: var(--gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
-        .logo p {
-            color: #94a3b8;
-            font-size: 1rem;
+
+        .subtitle {
+            color: var(--slate-200);
+            font-size: 1.1rem;
+            font-weight: 400;
         }
-        .tab-container {
+
+        /* Cards */
+        .card {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(16px);
+            border-radius: 24px;
+            padding: 28px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(16, 185, 129, 0.1);
+            box-shadow: var(--shadow);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--emerald);
+        }
+
+        /* Tabs */
+        .tabs {
             display: flex;
-            background: #1e293b;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            background: rgba(51, 65, 85, 0.8);
+            border-radius: 16px;
+            padding: 4px;
+            margin-bottom: 24px;
         }
-        .tab {
+
+        .tab-btn {
             flex: 1;
-            padding: 16px;
-            text-align: center;
-            background: transparent;
+            padding: 16px 20px;
             border: none;
-            color: #64748b;
+            background: transparent;
+            color: var(--slate-200);
+            border-radius: 12px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
         }
-        .tab.active {
-            background: #059669;
+
+        .tab-btn.active {
+            background: var(--gradient);
             color: white;
+            box-shadow: var(--shadow);
         }
+
+        /* Form */
         .form-group {
             margin-bottom: 20px;
         }
+
         label {
             display: block;
             margin-bottom: 8px;
-            color: #e2e8f0;
+            color: var(--slate-200);
             font-weight: 500;
             font-size: 0.95rem;
         }
-        input, select {
+
+        input, select, textarea {
             width: 100%;
-            padding: 16px;
-            border: 2px solid #334155;
-            border-radius: 12px;
-            background: #1e293b;
-            color: #f1f5f9;
+            padding: 16px 20px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid var(--slate-700);
+            border-radius: 16px;
+            color: var(--white);
             font-size: 1rem;
+            font-family: inherit;
             transition: all 0.3s ease;
         }
-        input:focus, select:focus {
+
+        input:focus, select:focus, textarea:focus {
             outline: none;
-            border-color: #059669;
-            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+            border-color: var(--emerald);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
         }
-        .terms-box {
-            background: #1e293b;
-            border: 2px solid #334155;
+
+        .service-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .service-chip {
+            padding: 12px 16px;
+            border: 2px solid var(--slate-700);
             border-radius: 12px;
-            max-height: 120px;
-            overflow-y: auto;
-            padding: 16px;
-            margin-bottom: 20px;
-            font-size: 0.875rem;
-            line-height: 1.5;
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 500;
         }
-        .checkbox-container {
+
+        .service-chip.active, .service-chip:hover {
+            border-color: var(--emerald);
+            background: rgba(16, 185, 129, 0.1);
+            transform: scale(1.05);
+        }
+
+        /* Terms */
+        .terms-container {
+            max-height: 140px;
+            overflow-y: auto;
+            background: rgba(15, 23, 42, 0.9);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid var(--slate-700);
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .checkbox-row {
             display: flex;
             align-items: flex-start;
             gap: 12px;
             margin-bottom: 24px;
         }
-        .checkbox-container input[type="checkbox"] {
+
+        .checkbox-row input {
             width: auto;
-            margin: 0;
-            transform: scale(1.2);
+            margin-top: 4px;
+            accent-color: var(--emerald);
         }
+
+        /* Buttons */
         .btn {
             width: 100%;
             padding: 18px;
             border: none;
-            border-radius: 12px;
+            border-radius: 16px;
             font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
         }
+
         .btn-primary {
-            background: linear-gradient(45deg, #059669, #10b981);
+            background: var(--gradient);
             color: white;
-            box-shadow: 0 8px 25px rgba(5, 150, 105, 0.3);
+            box-shadow: var(--shadow);
         }
+
         .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 35px rgba(5, 150, 105, 0.4);
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: var(--shadow-hover);
         }
+
         .btn-primary:disabled {
             opacity: 0.6;
             cursor: not-allowed;
+            transform: none;
         }
+
         .btn-google {
-            background: #fff;
-            color: #333;
-            margin-bottom: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 12px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
         }
-        .btn-google::before {
-            content: '👤';
-            font-size: 1.2rem;
+
+        /* Radar Overlay */
+        .radar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.98);
+            backdrop-filter: blur(20px);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            animation: fadeIn 0.3s ease;
         }
+
+        .radar-overlay.show {
+            display: flex;
+        }
+
+        .radar-container {
+            position: relative;
+            width: 240px;
+            height: 240px;
+        }
+
+        .radar-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 3px solid var(--emerald);
+            border-radius: 50%;
+            animation: radarSweep 2s linear infinite;
+        }
+
+        @keyframes radarSweep {
+            0% { 
+                transform: scale(0.3) rotate(0deg);
+                opacity: 1;
+            }
+            100% { 
+                transform: scale(1.8) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .radar-status {
+            margin-top: 40px;
+            font-size: 1.4rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        /* Map */
         #map {
-            height: 400px;
+            height: 320px;
             border-radius: 20px;
             margin: 20px 0;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            box-shadow: var(--shadow);
         }
-        .floating-buttons {
+
+        /* Service Cards */
+        .service-card {
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 20px;
+            padding: 24px;
+            margin: 16px 0;
+            border-left: 4px solid var(--emerald);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            animation: slideIn 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        .service-card:hover {
+            transform: translateX(8px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .service-card h4 {
+            color: var(--emerald);
+            margin-bottom: 8px;
+        }
+
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Floating Action Buttons */
+        .fab-container {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
+            bottom: 24px;
+            right: 24px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            z-index: 1000;
+            gap: 16px;
+            z-index: 2000;
         }
-        .btn-floating {
-            width: 60px;
-            height: 60px;
+
+        .fab {
+            width: 64px;
+            height: 64px;
             border-radius: 50%;
             border: none;
             font-size: 1.5rem;
-            cursor: pointer;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+            box-shadow: var(--shadow);
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
+            backdrop-filter: blur(20px);
         }
-        .btn-sos {
-            background: #ef4444;
-            color: white;
+
+        .fab-sos {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
             animation: pulse 2s infinite;
-        }
-        .btn-sos:hover {
-            transform: scale(1.1);
-            box-shadow: 0 12px 35px rgba(239,68,68,0.5);
-        }
-        .btn-logout {
-            background: #64748b;
             color: white;
         }
+
+        .fab-logout {
+            background: var(--slate-700);
+            color: white;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+        }
+
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.7); }
-            70% { box-shadow: 0 0 0 20px rgba(239,68,68,0); }
-            100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 24px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
-        .radar-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(15,23,42,0.95);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-            flex-direction: column;
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
         }
-        .radar-overlay.active {
-            display: flex;
-        }
-        .radar-circle {
-            width: 200px;
-            height: 200px;
-            border: 3px solid #059669;
-            border-radius: 50%;
-            position: relative;
-            animation: radar 2s infinite linear;
-        }
-        @keyframes radar {
-            0% { transform: scale(0.3) rotate(0deg); opacity: 1; }
-            100% { transform: scale(1.5) rotate(360deg); opacity: 0; }
-        }
-        .status-text {
-            margin-top: 30px;
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: #059669;
-        }
-        .order-card {
-            background: #1e293b;
+
+        .stat {
+            text-align: center;
+            padding: 16px;
+            background: rgba(16, 185, 129, 0.1);
             border-radius: 16px;
-            padding: 20px;
-            margin: 10px 0;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-            cursor: pointer;
-            transition: all 0.3s ease;
         }
-        .order-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 35px rgba(5,150,105,0.3);
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--emerald);
         }
-        .accepted-state {
-            background: linear-gradient(45deg, #059669, #10b981) !important;
-            animation: celebrate 1s ease-in-out;
-        }
-        @keyframes celebrate {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        .hidden {
-            display: none !important;
-        }
+
+        /* Responsive */
         @media (max-width: 480px) {
-            .container {
-                padding: 10px;
-            }
-            .floating-buttons {
-                bottom: 10px;
-                right: 10px;
-            }
-            .btn-floating {
-                width: 55px;
-                height: 55px;
-            }
+            .container { padding: 16px; }
+            .fab-container { bottom: 16px; right: 16px; }
+            .fab { width: 56px; height: 56px; font-size: 1.3rem; }
         }
-        /* Evita quebra do layout com teclado */
-        body.keyboard-open {
-            padding-bottom: 200px;
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .hidden { display: none !important; }
+
+        /* Custom Leaflet Icons */
+        .custom-icon {
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            padding: 8px;
+            font-size: 1.5rem;
         }
     </style>
 </head>
 <body>
     <div class="container" id="app">
-        <!-- Tela de Login/Cadastro -->
-        <div id="loginScreen">
-            <div class="logo">
-                <h1>EcoRota</h1>
-                <p>Mobilidade urbana sustentável P2P</p>
+        <!-- Onboarding Screen -->
+        <div id="onboarding">
+            <div class="hero">
+                <div class="logo"><i class="fas fa-leaf"></i></div>
+                <h1>GreenMatch</h1>
+                <p class="subtitle">Conecte-se com serviços sustentáveis locais</p>
             </div>
-            
-            <button class="btn btn-google" onclick="simulateGoogleLogin()">
-                Entrar com Google
-            </button>
-            
-            <div class="tab-container">
-                <button class="tab active" onclick="switchTab('client')">Sou Cliente</button>
-                <button class="tab" onclick="switchTab('provider')">Sou Prestador</button>
-            </div>
-            
-            <form id="loginForm">
-                <div class="form-group">
-                    <label>Nome Completo</label>
-                    <input type="text" id="userName" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>WhatsApp (com DDD)</label>
-                    <input type="tel" id="whatsapp" placeholder="(11) 99999-9999" required>
-                </div>
-                
-                <div class="form-group hidden" id="vehicleGroup">
-                    <label>Meio de Transporte</label>
-                    <select id="vehicle" required>
-                        <option value="">Selecione...</option>
-                        <option value="bike">🚲 Bike</option>
-                        <option value="ebike">⚡ E-Bike</option>
-                        <option value="scooter">🛴 Patinete</option>
-                        <option value="walk">🚶 A Pé</option>
-                    </select>
-                </div>
-                
-                <div class="terms-box">
-                    <strong>Termos de Uso P2P EcoRota</strong><br><br>
-                    1. Uso exclusivo de veículos não poluentes (bike, e-bike, patinete, a pé).<br>
-                    2. Priorizar segurança e respeito ao próximo.<br>
-                    3. Compartilhamento apenas via WhatsApp oficial.<br>
-                    4. Botão SOS sempre acessível (emergência PM).<br>
-                    5. Avaliação obrigatória pós-serviço (+1 Estrela Eco).<br>
-                    6. Proibido spam ou solicitações inadequadas.<br><br>
-                    <em>Aceitando, você concorda com nossa política de mobilidade sustentável.</em>
-                </div>
-                
-                <div class="checkbox-container">
-                    <input type="checkbox" id="termsCheck">
-                    <label for="termsCheck">Li e aceito os termos de uso</label>
-                </div>
-                
-                <button type="submit" class="btn btn-primary" id="loginBtn" disabled>
-                    Entrar na EcoRota
+
+            <div class="card">
+                <button class="btn btn-google" onclick="simulateGoogleLogin()">
+                    <i class="fab fa-google"></i> Continuar com Google
                 </button>
-            </form>
+
+                <div class="tabs" id="roleTabs">
+                    <button class="tab-btn active" onclick="switchRole('client')">
+                        <i class="fas fa-user"></i> Cliente
+                    </button>
+                    <button class="tab-btn" onclick="switchRole('provider')">
+                        <i class="fas fa-tools"></i> Prestador
+                    </button>
+                </div>
+
+                <form id="userForm">
+                    <div class="form-group">
+                        <label>Nome Completo</label>
+                        <input type="text" id="userName" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>WhatsApp</label>
+                        <input type="tel" id="whatsapp" placeholder="(11) 99999-9999" required>
+                    </div>
+
+                    <div class="form-group hidden" id="vehicleGroup">
+                        <label>Seu Veículo Sustentável</label>
+                        <select id="vehicle" required>
+                            <option value="">Escolha...</option>
+                            <option value="bike">🚲 Bicicleta</option>
+                            <option value="ebike">⚡ E-Bike</option>
+                            <option value="scooter">🛴 Patinete</option>
+                            <option value="walk">🚶 A Pé</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group hidden" id="servicesGroup">
+                        <label>Selecione seus Serviços</label>
+                        <div class="service-grid">
+                            <div class="service-chip" data-service="delivery">
+                                <i class="fas fa-bicycle"></i><br>Entregas
+                            </div>
+                            <div class="service-chip" data-service="errands">
+                                <i class="fas fa-shopping-bag"></i><br>Compras
+                            </div>
+                            <div class="service-chip" data-service="repairs">
+                                <i class="fas fa-tools"></i><br>Conserto
+                            </div>
+                            <div class="service-chip" data-service="cleaning">
+                                <i class="fas fa-broom"></i><br>Limpeza
+                            </div>
+                            <div class="service-chip" data-service="dogwalker">
+                                <i class="fas fa-paw"></i><br>Pet Walker
+                            </div>
+                            <div class="service-chip" data-service="other">
+                                <i class="fas fa-plus"></i><br>Outro
+                            </div>
+                        </div>
+                        <textarea id="serviceDesc" placeholder="Descreva seu serviço..." rows="2"></textarea>
+                    </div>
+
+                    <div class="terms-container">
+                        <strong>🌿 Compromisso GreenMatch</strong><br><br>
+                        • Apenas veículos não poluentes<br>
+                        • Serviços locais (reduz CO₂)<br>
+                        • Pagamento via Pix (sem plataformas)<br>
+                        • Avaliação pós-serviço obrigatória<br>
+                        • SOS sempre acessível<br>
+                        • Comunidade sustentável primeiro<br><br>
+                        <em>Aceitando, você apoia nossa missão verde.</em>
+                    </div>
+
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="termsAccept">
+                        <label for="termsAccept">Li e aceito os termos</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="joinBtn" disabled>
+                        <i class="fas fa-rocket"></i> Entrar na GreenMatch
+                    </button>
+                </form>
+            </div>
         </div>
-        
-        <!-- Tela Principal Cliente -->
-        <div id="clientScreen" class="hidden">
-            <div style="text-align: center; margin-bottom: 20px;">
-                <h2>Bem-vindo(a), <span id="clientName"></span>! 🌿</h2>
-                <button class="btn btn-primary" onclick="startRadar()">
-                    🚀 Buscar Prestador Próximo
+
+        <!-- Client Dashboard -->
+        <div id="clientDash" class="hidden">
+            <div class="stats-grid">
+                <div class="stat">
+                    <div class="stat-number" id="ecoPoints">0</div>
+                    <div>Estrelas Eco</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="co2Saved">0</div>
+                    <div>KG CO₂ Evitados</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <button class="btn btn-primary" onclick="startGreenRadar()">
+                    <i class="fas fa-search-location"></i> Buscar Prestador Verde
                 </button>
             </div>
+
             <div id="map"></div>
-            <div id="ordersList"></div>
+            <div id="nearbyServices"></div>
         </div>
-        
-        <!-- Tela Principal Prestador -->
-        <div id="providerScreen" class="hidden">
-            <div style="text-align: center; margin-bottom: 20px;">
-                <h2>👨‍🚴 <span id="providerName"></span></h2>
-                <p style="color: #94a3b8;">Aguardando pedidos próximos...</p>
+
+        <!-- Provider Dashboard -->
+        <div id="providerDash" class="hidden">
+            <div class="stats-grid">
+                <div class="stat">
+                    <div class="stat-number" id="providerJobs">0</div>
+                    <div>Serviços Hoje</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="providerRating">5.0</div>
+                    <div>Nota Verde</div>
+                </div>
             </div>
+
             <div id="providerMap"></div>
-            <div id="pendingOrders"></div>
+            <div id="pendingRequests"></div>
         </div>
     </div>
-    
-    <!-- Overlay Radar -->
-    <div class="radar-overlay" id="radarOverlay">
-        <div class="radar-circle"></div>
-        <div class="status-text" id="radarStatus">Iniciando varredura...</div>
+
+    <!-- Green Radar Overlay -->
+    <div class="radar-overlay" id="greenRadar">
+        <div class="radar-container">
+            <div class="radar-ring"></div>
+        </div>
+        <div class="radar-status" id="radarStatus">🔍 Varredura Verde Iniciada...</div>
     </div>
-    
-    <!-- Botões Flutuantes -->
-    <div class="floating-buttons hidden" id="floatingBtns">
-        <a href="tel:190" class="btn-floating btn-sos" title="SOS - Emergência">🚨</a>
-        <button class="btn-floating btn-logout" onclick="logout()" title="Sair">🚪</button>
+
+    <!-- Floating Action Buttons -->
+    <div class="fab-container hidden" id="fabs">
+        <a href="tel:190" class="fab fab-sos" title="SOS Emergência">
+            <i class="fas fa-exclamation-triangle"></i>
+        </a>
+        <button class="fab fab-logout" onclick="logout()">
+            <i class="fas fa-sign-out-alt"></i>
+        </button>
     </div>
-    
+
     <script>
-        // Config Firebase (substitua pelos seus dados)
+        // Firebase Config (substitua pelos seus dados)
         const firebaseConfig = {
             apiKey: "sua-api-key",
             authDomain: "seu-projeto.firebaseapp.com",
@@ -389,321 +612,302 @@
             messagingSenderId: "123456789",
             appId: "sua-app-id"
         };
-        
-        // Inicializar Firebase
+
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        
-        // Estado da aplicação
+
+        // App State
         let currentUser = null;
-        let userType = null;
+        let userRole = null;
         let userLocation = null;
         let map = null;
         let userMarker = null;
-        let radarTimeout = null;
-        let searchRadius = 0.5; // km
-        
-        // Máscara WhatsApp
-        const whatsappMask = IMask(document.getElementById('whatsapp'), {
-            mask: '(00) 00000-0000'
-        });
-        
-        // Inicialização
-        document.addEventListener('DOMContentLoaded', function() {
-            // Detectar teclado mobile
-            window.visualViewport?.addEventListener('resize', handleKeyboard);
-            
-            document.getElementById('termsCheck').addEventListener('change', function() {
-                document.getElementById('loginBtn').disabled = !this.checked;
+        let radarTimer = null;
+        let selectedServices = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', initApp);
+
+        function initApp() {
+            const whatsappInput = IMask(document.getElementById('whatsapp'), {
+                mask: '(00) 00000-0000'
             });
-            
-            document.getElementById('loginForm').addEventListener('submit', handleLogin);
-        });
-        
+
+            document.getElementById('termsAccept').addEventListener('change', toggleJoinBtn);
+            document.getElementById('userForm').addEventListener('submit', handleJoin);
+
+            // Service chips
+            document.querySelectorAll('.service-chip').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    chip.classList.toggle('active');
+                    toggleService(chip.dataset.service);
+                });
+            });
+        }
+
         function simulateGoogleLogin() {
             Swal.fire({
                 icon: 'success',
-                title: 'Google Login Simulado!',
-                text: 'Usuário autenticado com sucesso.',
-                timer: 1500,
+                title: 'Bem-vindo ao GreenMatch! 🌿',
+                text: 'Login simulado com sucesso.',
+                timer: 1800,
                 showConfirmButton: false
             });
         }
-        
-        function switchTab(type) {
-            userType = type;
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+        function switchRole(role) {
+            userRole = role;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
-            
-            const vehicleGroup = document.getElementById('vehicleGroup');
-            if (type === 'provider') {
-                vehicleGroup.classList.remove('hidden');
+
+            document.getElementById('vehicleGroup').classList.toggle('hidden', role !== 'provider');
+            document.getElementById('servicesGroup').classList.toggle('hidden', role !== 'provider');
+        }
+
+        function toggleService(service) {
+            const index = selectedServices.indexOf(service);
+            if (index > -1) {
+                selectedServices.splice(index, 1);
             } else {
-                vehicleGroup.classList.add('hidden');
+                selectedServices.push(service);
             }
         }
-        
-        async function handleLogin(e) {
+
+        function toggleJoinBtn() {
+            const checked = document.getElementById('termsAccept').checked;
+            const requiredFilled = userRole === 'provider' ? 
+                selectedServices.length > 0 && document.getElementById('vehicle').value :
+                true;
+
+            document.getElementById('joinBtn').disabled = !checked || !requiredFilled;
+        }
+
+        async function handleJoin(e) {
             e.preventDefault();
+            
             const name = document.getElementById('userName').value;
             const whatsapp = document.getElementById('whatsapp').inputmask.unmaskedValue();
-            
-            if (!name || !whatsapp) {
-                Swal.fire('Erro', 'Preencha todos os campos!', 'error');
+            const vehicle = document.getElementById('vehicle').value;
+
+            if (!name || !whatsapp || (userRole === 'provider' && (!vehicle || selectedServices.length === 0))) {
+                Swal.fire('Ops!', 'Complete todos os campos!', 'warning');
                 return;
             }
-            
-            if (userType === 'provider' && !document.getElementById('vehicle').value) {
-                Swal.fire('Erro', 'Selecione seu veículo!', 'error');
-                return;
-            }
-            
+
             currentUser = {
                 id: `user_${Date.now()}`,
                 name,
                 whatsapp: `55${whatsapp}`,
-                type: userType,
-                vehicle: userType === 'provider' ? document.getElementById('vehicle').value : null,
+                role: userRole,
+                vehicle: vehicle || null,
+                services: selectedServices,
                 online: true,
+                ecoPoints: 0,
+                rating: 5.0,
+                location: null,
                 timestamp: Date.now()
             };
-            
-            // Salvar usuário no Firebase
+
             await db.ref('users').child(currentUser.id).set(currentUser);
-            
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById(`${userType}Screen`).classList.remove('hidden');
-            document.getElementById('floatingBtns').classList.remove('hidden');
-            
-            if (userType === 'client') {
-                document.getElementById('clientName').textContent = name;
-                initClientMap();
-            } else {
-                document.getElementById('providerName').textContent = name;
+            showDashboard();
+            getLocation();
+        }
+
+        function showDashboard() {
+            document.getElementById('onboarding').classList.add('hidden');
+            document.getElementById(`${userRole}Dash`).classList.remove('hidden');
+            document.getElementById('fabs').classList.remove('hidden');
+
+            if (userRole === 'client') initClientMap();
+            else {
                 initProviderMap();
-                listenForOrders();
+                listenForRequests();
             }
-            
-            getUserLocation();
         }
-        
-        function handleKeyboard() {
-            const visible = window.visualViewport.height / window.innerHeight;
-            document.body.classList.toggle('keyboard-open', visible < 0.8);
-        }
-        
-        async function getUserLocation() {
+
+        async function getLocation() {
             if (!navigator.geolocation) return;
-            
+
             navigator.geolocation.getCurrentPosition(
-                async (position) => {
+                async (pos) => {
                     userLocation = {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude
+                        lat: pos.coords.latitude,
+                        lng: pos.coords.longitude
                     };
-                    
+                    currentUser.location = userLocation;
+                    await db.ref('users').child(currentUser.id).update({ location: userLocation });
+
                     if (map && userMarker) {
                         userMarker.setLatLng([userLocation.lat, userLocation.lng]);
-                        map.setView([userLocation.lat, userLocation.lng], 15);
+                        map.setView([userLocation.lat, userLocation.lng], 14);
                     }
                 },
-                () => Swal.fire('Aviso', 'Habilite a localização!', 'warning'),
-                { enableHighAccuracy: true, timeout: 10000 }
+                () => Swal.fire('Localização', 'Habilite para melhores resultados!', 'info'),
+                { enableHighAccuracy: true }
             );
         }
-        
+
         function initClientMap() {
-            map = L.map('map').setView([-23.5505, -46.6333], 15);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap'
-            }).addTo(map);
-            
-            userMarker = L.marker([0, 0], {
-                icon: L.divIcon({
-                    className: 'client-icon',
-                    html: '👤',
-                    iconSize: [40, 40],
-                    iconAnchor: [20, 20]
-                })
-            }).addTo(map);
-        }
-        
-        function initProviderMap() {
-            map = L.map('providerMap').setView([-23.5505, -46.6333], 15);
+            map = L.map('map').setView([-23.5505, -46.6333], 13);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-            
+
             userMarker = L.marker([0, 0], {
                 icon: L.divIcon({
-                    className: 'provider-icon',
-                    html: '👨‍🚴',
+                    html: '<div class="custom-icon">👤</div>',
                     iconSize: [40, 40],
-                    iconAnchor: [20, 20]
+                    className: 'custom-div-icon'
                 })
             }).addTo(map);
         }
-        
-        async function startRadar() {
-            const overlay = document.getElementById('radarOverlay');
+
+        function initProviderMap() {
+            map = L.map('providerMap').setView([-23.5505, -46.6333], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+            userMarker = L.marker([0, 0], {
+                icon: L.divIcon({
+                    html: '<div class="custom-icon">🚲</div>',
+                    iconSize: [40, 40],
+                    className: 'custom-div-icon'
+                })
+            }).addTo(map);
+        }
+
+        async function startGreenRadar() {
+            const overlay = document.getElementById('greenRadar');
             const status = document.getElementById('radarStatus');
-            overlay.classList.add('active');
-            
-            // Fase 1: 500m
-            status.textContent = '🔍 Varrendo 500m...';
-            await new Promise(r => setTimeout(r, 10000));
-            
-            // Fase 2: 2km
-            status.textContent = '🔍 Varrendo 2km...';
-            await new Promise(r => setTimeout(r, 10000));
-            
-            // Fase 3: Cidade toda
-            status.textContent = '🚨 Prioridade Máxima - Cidade Toda!';
-            await new Promise(r => setTimeout(r, 10000));
-            
-            // Enviar pedido
-            const order = {
-                id: `order_${Date.now()}`,
+            overlay.classList.add('show');
+
+            // 3 fases de busca
+            const phases = [
+                '🌱 Varredura Verde 500m...',
+                '🌿 Varredura Sustentável 2km...',
+                '🚀 Prioridade Máxima - Rede Verde!'
+            ];
+
+            for (let i = 0; i < phases.length; i++) {
+                status.textContent = phases[i];
+                await new Promise(r => setTimeout(r, 8000));
+            }
+
+            // Criar pedido
+            const request = {
+                id: `req_${Date.now()}`,
                 clientId: currentUser.id,
                 clientName: currentUser.name,
                 clientWhatsapp: currentUser.whatsapp,
                 location: userLocation,
-                type: 'transporte', // pode ser customizado
-                description: 'Preciso de ajuda para me locomover!',
+                servicesNeeded: ['any'], // Pode ser mais específico
                 status: 'pending',
                 timestamp: Date.now(),
-                expires: Date.now() + 30000 // 30s
+                expires: Date.now() + 30000
             };
-            
-            await db.ref('orders').child(order.id).set(order);
-            
-            // Monitorar aceite
-            radarTimeout = setTimeout(async () => {
-                await db.ref('orders').child(order.id).remove();
-                overlay.classList.remove('active');
-                Swal.fire({
-                    icon: 'info',
-                    title: 'Alta demanda!',
-                    text: 'Tente novamente em 5 minutos.',
-                    timer: 3000
-                });
+
+            await db.ref('requests').child(request.id).set(request);
+            monitorRequest(request.id);
+        }
+
+        function monitorRequest(reqId) {
+            radarTimer = setTimeout(async () => {
+                await db.ref('requests').child(reqId).remove();
+                document.getElementById('greenRadar').classList.remove('show');
+                Swal.fire('Alta Demanda', 'Tente em 5min 🌿', 'info');
             }, 30000);
-            
-            listenForOrderAcceptance(order.id);
-        }
-        
-        function listenForOrderAcceptance(orderId) {
-            db.ref('orders').child(orderId).on('value', (snapshot) => {
-                const order = snapshot.val();
-                if (order && order.status === 'accepted' && radarTimeout) {
-                    clearTimeout(radarTimeout);
-                    document.getElementById('radarOverlay').classList.remove('active');
+
+            db.ref('requests').child(reqId).on('value', snap => {
+                const req = snap.val();
+                if (req?.status === 'accepted' && radarTimer) {
+                    clearTimeout(radarTimer);
+                    document.getElementById('greenRadar').classList.remove('show');
                     
-                    // Som de celebração
-                    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAo');
-                    audio.play();
-                    
-                    // Gamificação
-                    document.getElementById('clientScreen').querySelector('.btn-primary')
-                        .innerHTML = '✨ +1 Estrela Eco! ✨';
-                    
-                    setTimeout(() => {
-                        document.getElementById('clientScreen').querySelector('.btn-primary')
-                            .innerHTML = '🚀 Buscar Prestador Próximo';
-                    }, 3000);
-                    
-                    // Abrir WhatsApp
-                    const whatsappUrl = `https://wa.me/${order.providerWhatsapp}?text=Olá!%20Aceitei%20seu%20pedido%20EcoRota!%20🚀%20Estou%20a%20caminho!`;
-                    window.open(whatsappUrl, '_blank');
+                    // Celebração
+                    celebrateMatch(req);
                 }
             });
         }
-        
-        function listenForOrders() {
-            db.ref('orders').orderByChild('status').equalTo('pending').on('child_added', (snapshot) => {
-                const order = snapshot.val();
-                if (order.expires > Date.now()) {
-                    displayPendingOrder(snapshot.key, order);
+
+        function celebrateMatch(request) {
+            // Som de sucesso
+            const successSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAo');
+            successSound.play();
+
+            Swal.fire({
+                icon: 'success',
+                title: '🎉 Match Verde!',
+                text: '+1 Estrela Eco! Abrindo WhatsApp...',
+                timer: 2500
+            });
+
+            document.getElementById('ecoPoints').textContent = parseInt(document.getElementById('ecoPoints').textContent) + 1;
+
+            setTimeout(() => {
+                window.open(`https://wa.me/${request.providerWhatsapp}?text=🌿%20Olá!%20GreenMatch%20conectou%20nossos%20serviços%20sustentáveis!%20Vamos?`, '_blank');
+            }, 1000);
+        }
+
+        function listenForRequests() {
+            db.ref('requests').orderByChild('status').equalTo('pending').on('child_added', snap => {
+                const req = snap.val();
+                if (req.expires > Date.now() && selectedServices.some(s => req.servicesNeeded.includes(s) || req.servicesNeeded.includes('any'))) {
+                    showRequest(snap.key, req);
                 }
             });
         }
-        
-        function displayPendingOrder(orderId, order) {
-            const container = document.getElementById('pendingOrders');
+
+        function showRequest(reqId, req) {
+            const container = document.getElementById('pendingRequests');
             const card = document.createElement('div');
-            card.className = 'order-card';
+            card.className = 'service-card';
+            card.style.animationDelay = `${Math.random() * 0.3}s`;
             card.innerHTML = `
-                <h3>👤 ${order.clientName}</h3>
-                <p><strong>📍 Distância:</strong> ${calculateDistance(order.location, userLocation)?.toFixed(1)}km</p>
-                <p><strong>📱 WhatsApp:</strong> ${formatWhatsapp(order.clientWhatsapp)}</p>
-                <p>${order.description}</p>
-                <button class="btn btn-primary" onclick="acceptOrder('${orderId}', '${order.clientWhatsapp}')">
-                    ✅ Aceitar Pedido
+                <h4><i class="fas fa-user"></i> ${req.clientName}</h4>
+                <p><strong>📍 Distância:</strong> ${calculateDistance(req.location, userLocation)?.toFixed(1) || '?'}km</p>
+                <p><strong>📱:</strong> ${formatPhone(req.clientWhatsapp)}</p>
+                <button class="btn btn-primary" onclick="acceptRequest('${reqId}', '${req.clientWhatsapp}')">
+                    <i class="fas fa-check"></i> Aceitar Verde
                 </button>
             `;
             container.appendChild(card);
         }
-        
-        async function acceptOrder(orderId, clientWhatsapp) {
-            const updates = {};
-            updates[`orders/${orderId}/status`] = 'accepted';
-            updates[`orders/${orderId}/providerWhatsapp`] = currentUser.whatsapp;
-            updates[`orders/${orderId}/providerName`] = currentUser.name;
-            updates[`orders/${orderId}/providerVehicle`] = currentUser.vehicle;
-            
-            await db.ref().update(updates);
-            
-            // Remover card visualmente
-            document.querySelectorAll('.order-card').forEach(c => c.remove());
-            
-            Swal.fire({
-                icon: 'success',
-                title: 'Pedido Aceito!',
-                text: 'Abra o WhatsApp para contato.',
-                timer: 2000
-            });
-            
-            // Abrir WhatsApp
-            window.open(`https://wa.me/${clientWhatsapp}?text=Olá!%20Aceitei%20seu%20pedido%20EcoRota!%20${getVehicleEmoji(currentUser.vehicle)}%20Chegando%20logo!`, '_blank');
-        }
-        
-        function calculateDistance(loc1, loc2) {
-            if (!loc1 || !loc2) return null;
-            const R = 6371; // km
-            const dLat = (loc2.lat - loc1.lat) * Math.PI / 180;
-            const dLng = (loc2.lng - loc1.lng) * Math.PI / 180;
-            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                    Math.cos(loc1.lat * Math.PI / 180) * Math.cos(loc2.lat * Math.PI / 180) *
-                    Math.sin(dLng/2) * Math.sin(dLng/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c;
-        }
-        
-        function formatWhatsapp(num) {
-            return num.replace('+55', '').replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-        }
-        
-        function getVehicleEmoji(vehicle) {
-            const emojis = {
-                bike: '🚲',
-                ebike: '⚡',
-                scooter: '🛴',
-                walk: '🚶'
+
+        async function acceptRequest(reqId, clientPhone) {
+            const updates = {
+                [`requests/${reqId}/status`]: 'accepted',
+                [`requests/${reqId}/providerWhatsapp`]: currentUser.whatsapp,
+                [`requests/${reqId}/providerName`]: currentUser.name
             };
-            return emojis[vehicle] || '';
+
+            await db.ref().update(updates);
+            document.querySelectorAll('.service-card').forEach(c => c.remove());
+
+            Swal.fire('Sucesso!', 'Pedido aceito! WhatsApp aberto.', 'success');
+            window.open(`https://wa.me/${clientPhone}?text=🌿%20Oi!%20Aceitei%20seu%20pedido%20GreenMatch!%20${getVehicleEmoji(currentUser.vehicle || 'bike')} %20Estou%20indo!`, '_blank');
         }
-        
+
+        function calculateDistance(p1, p2) {
+            if (!p1 || !p2) return null;
+            const R = 6371;
+            const dLat = (p2.lat - p1.lat) * Math.PI / 180;
+            const dLon = (p2.lng - p1.lng) * Math.PI / 180;
+            const a = Math.sin(dLat/2)**2 + Math.cos(p1.lat * Math.PI / 180) * Math.cos(p2.lat * Math.PI / 180) * Math.sin(dLon/2)**2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        function formatPhone(phone) {
+            const num = phone.replace('55', '');
+            return `(${num.slice(0,2)}) ${num.slice(2,7)}-${num.slice(7)}`;
+        }
+
+        function getVehicleEmoji(v) {
+            return { bike: '🚲', ebike: '⚡', scooter: '🛴', walk: '🚶' }[v] || '🚲';
+        }
+
         function logout() {
             if (currentUser) {
                 db.ref('users').child(currentUser.id).update({ online: false });
             }
             location.reload();
         }
-        
-        // Cleanup no unload
-        window.addEventListener('beforeunload', () => {
-            if (currentUser) {
-                db.ref('users').child(currentUser.id)?.update({ online: false });
-            }
-        });
     </script>
 </body>
 </html>
