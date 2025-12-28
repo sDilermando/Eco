@@ -61,6 +61,7 @@
         .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; background: #333; color: #666; box-shadow: none; }
         .btn-danger { background: #ff4757; color: white; }
         .btn-whatsapp { background: #25D366; color: white; box-shadow: 0 0 15px rgba(37, 211, 102, 0.4); text-decoration: none; }
+        .btn-map { background: #3b82f6; color: white; }
 
         input, select, textarea {
             width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border); padding: 15px;
@@ -84,7 +85,7 @@
 
         /* --- MODALS (Z-INDEX ALTO) --- */
         .provider-modal {
-            position: fixed; bottom: 0; left: 0; width: 100%; max-height: 90%; 
+            position: fixed; bottom: 0; left: 0; width: 100%; max-height: 95%; 
             background: #0a2919; border-top-left-radius: 30px; border-top-right-radius: 30px;
             z-index: 5000; padding: 30px; box-shadow: 0 -10px 40px rgba(0,0,0,0.9);
             transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -255,49 +256,39 @@
 
 <div id="jobModal" class="provider-modal">
     <button class="close-modal" onclick="closeJobModal()">×</button>
-    <div class="vehicle-icon-large"><i class="fas fa-leaf"></i></div>
-    <div class="modal-title">Novo Serviço!</div>
+    <div class="vehicle-icon-large"><i class="fas fa-user"></i></div>
+    <div class="modal-title" style="margin-bottom:20px;">Solicitação de Serviço</div>
     
+    <h3 style="color:var(--primary); margin-bottom:5px;" id="jobClientName">Nome do Cliente</h3>
+    <div style="font-size:0.8rem; color:#aaa; margin-bottom:20px;">Contratante</div>
+
     <div class="job-detail-row">
         <span class="job-label">Serviço</span>
         <span class="job-value" id="jobDesc">...</span>
     </div>
     <div class="job-detail-row">
-        <span class="job-label">Pegar em (Origem)</span>
+        <span class="job-label">Origem</span>
         <span class="job-value" id="jobPickup">...</span>
     </div>
     <div class="job-detail-row">
-        <span class="job-label">Entregar em (Destino)</span>
+        <span class="job-label">Destino</span>
         <span class="job-value" id="jobDelivery">...</span>
     </div>
     <div class="job-detail-row" style="background:rgba(0,255,136,0.1); border:1px solid var(--primary);">
-        <span class="job-label" style="color:var(--primary);">VALOR</span>
+        <span class="job-label" style="color:var(--primary);">VALOR OFERTADO</span>
         <span class="job-price" id="jobValue">R$ 0,00</span>
     </div>
 
-    <button class="btn btn-primary" onclick="acceptJobStep1()">
-        <i class="fas fa-check-circle"></i> ACEITAR SERVIÇO
-    </button>
-    <button class="btn" style="background:transparent; border:1px solid #ff4757; color:#ff4757;" onclick="closeJobModal()">
-        RECUSAR
-    </button>
-</div>
-
-<div id="contactModal" class="provider-modal">
-    <div class="vehicle-icon-large" style="border-color:#fff; color:#fff;"><i class="fas fa-user"></i></div>
-    <div class="modal-title">Dados do Contratante</div>
-    <div class="modal-subtitle" style="margin-bottom:30px;">Entre em contato antes de ir!</div>
-
-    <h2 id="contactName" style="color:var(--primary); margin-bottom:20px;">Maria Silva</h2>
-
-    <a href="#" id="contactWhatsapp" target="_blank" class="btn btn-whatsapp">
+    <a href="#" id="jobWhatsappLink" target="_blank" class="btn btn-whatsapp" style="margin-bottom:10px;">
         <i class="fab fa-whatsapp"></i> CHAMAR NO WHATSAPP
     </a>
 
-    <div style="margin: 20px 0; width:100%; border-top:1px solid var(--border);"></div>
+    <button class="btn btn-map" onclick="openGoogleRoute()" style="margin-bottom:10px;">
+        <i class="fas fa-map-marked-alt"></i> VER ROTA (GOOGLE MAPS)
+    </button>
 
-    <button class="btn btn-primary" onclick="startNavigation()">
-        <i class="fas fa-map-marked-alt"></i> CONFIRMAR E IR P/ MAPA
+    <button class="btn" style="background:transparent; border:1px solid #ff4757; color:#ff4757;" onclick="closeJobModal()">
+        IGNORAR
     </button>
 </div>
 
@@ -376,10 +367,10 @@
         
         if(!desc || !pickup || !delivery || !val) return Swal.fire('Ops', 'Preencha todos os campos!', 'warning');
 
-        // Salva job simulado
+        // Salva job simulado com telefone
         localStorage.setItem('lastJob', JSON.stringify({
             client: currentUser.name,
-            clientPhone: currentUser.phone, // Salva telefone para contato
+            clientPhone: currentUser.phone,
             desc: desc,
             pickup: pickup,
             delivery: delivery,
@@ -440,6 +431,10 @@
         document.getElementById('jobDelivery').innerText = job.delivery;
         document.getElementById('jobValue').innerText = "R$ " + parseFloat(job.value).toFixed(2);
         
+        // Configura link do WhatsApp Direto
+        const phoneClean = job.clientPhone.replace(/\D/g, '');
+        document.getElementById('jobWhatsappLink').href = `https://wa.me/55${phoneClean}?text=Olá, sou o prestador do GreenMatch! Vi seu pedido: ${job.desc}.`;
+
         document.getElementById('jobModal').classList.add('show');
     }
 
@@ -447,32 +442,12 @@
         document.getElementById('jobModal').classList.remove('show');
     }
 
-    // --- PASSO 1: ACEITAR E MOSTRAR CONTATO ---
-    function acceptJobStep1() {
-        closeJobModal();
-        
-        // Popula modal de contato
-        document.getElementById('contactName').innerText = currentJob.client;
-        const phoneClean = currentJob.clientPhone.replace(/\D/g, '');
-        document.getElementById('contactWhatsapp').href = `https://wa.me/55${phoneClean}?text=Olá, sou o prestador do GreenMatch! Aceitei seu pedido: ${currentJob.desc}.`;
-        
-        document.getElementById('contactModal').classList.add('show');
-    }
-
-    // --- PASSO 2: IR PARA NAVEGAÇÃO ---
-    function startNavigation() {
-        document.getElementById('contactModal').classList.remove('show');
-        
-        // Monta rota no Google Maps (Origem -> Destino)
-        const origin = encodeURIComponent(currentJob.pickup);
-        const dest = encodeURIComponent(currentJob.delivery);
-        const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}&travelmode=driving`;
-        
-        window.open(url, '_blank');
-        
-        // Reseta tela do prestador
-        Swal.fire({title:'Bom trabalho!', text:'Navegação iniciada.', icon:'success', confirmButtonColor:'#00ff88'});
-        document.getElementById('providerStatusArea').innerHTML = '<p>Em serviço...</p><button class="btn btn-primary" onclick="simulateProviderActivity()">Finalizar</button>';
+    function openGoogleRoute() {
+        if(currentJob) {
+            const origin = encodeURIComponent(currentJob.pickup);
+            const dest = encodeURIComponent(currentJob.delivery);
+            window.open(`https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}&travelmode=driving`, '_blank');
+        }
     }
 
     // --- MAPA ---
