@@ -60,6 +60,7 @@
         .btn-primary { background: var(--primary); color: var(--bg-deep); box-shadow: var(--shadow-glow); }
         .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; background: #333; color: #666; box-shadow: none; }
         .btn-danger { background: #ff4757; color: white; }
+        .btn-whatsapp { background: #25D366; color: white; box-shadow: 0 0 15px rgba(37, 211, 102, 0.4); text-decoration: none; }
 
         input, select, textarea {
             width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border); padding: 15px;
@@ -81,12 +82,11 @@
             border-radius: 12px; padding: 10px; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 15px; text-align: justify;
         }
 
-        /* --- MODALS (CORREÇÃO DE SOBREPOSIÇÃO) --- */
+        /* --- MODALS (Z-INDEX ALTO) --- */
         .provider-modal {
-            position: fixed; bottom: 0; left: 0; width: 100%; max-height: 85%; 
+            position: fixed; bottom: 0; left: 0; width: 100%; max-height: 90%; 
             background: #0a2919; border-top-left-radius: 30px; border-top-right-radius: 30px;
-            z-index: 5000; /* AUMENTADO PARA FICAR ACIMA DE TUDO */
-            padding: 30px; box-shadow: 0 -10px 40px rgba(0,0,0,0.9);
+            z-index: 5000; padding: 30px; box-shadow: 0 -10px 40px rgba(0,0,0,0.9);
             transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex; flex-direction: column; align-items: center; border-top: 2px solid var(--primary);
             overflow-y: auto;
@@ -108,7 +108,7 @@
             background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; margin-bottom: 10px;
         }
         .job-label { color: var(--text-muted); font-size: 0.8rem; }
-        .job-value { color: #fff; font-weight: bold; font-size: 1rem; }
+        .job-value { color: #fff; font-weight: bold; font-size: 0.95rem; text-align: right; max-width: 60%; }
         .job-price { color: var(--primary); font-size: 1.4rem; font-weight: 900; }
 
         .close-modal {
@@ -194,18 +194,21 @@
         
         <div class="glass-card">
             <label style="color:var(--text-muted);">O que precisa ser feito?</label>
-            <textarea id="serviceDesc" rows="2" placeholder="Ex: Buscar encomenda na farmácia..."></textarea>
+            <textarea id="serviceDesc" rows="2" placeholder="Ex: Buscar encomenda..."></textarea>
 
             <label style="color:var(--text-muted);">Transporte Desejado</label>
             <select id="reqTransport">
                 <option value="any">Qualquer um (Mais Rápido)</option>
                 <option value="bike">🚲 Bicicleta</option>
                 <option value="ebike">⚡ Bike Elétrica</option>
-                <option value="foot">🚶 A Pé (Curta distância)</option>
+                <option value="foot">🚶 A Pé</option>
             </select>
 
-            <label style="color:var(--text-muted);">Local (Coleta/Entrega)</label>
-            <input type="text" id="reqLocation" placeholder="Ex: Rua das Flores, 123 até Centro">
+            <label style="color:var(--text-muted);">Onde pegar? (Origem)</label>
+            <input type="text" id="reqPickup" placeholder="Ex: Farmácia Central">
+
+            <label style="color:var(--text-muted);">Onde entregar? (Destino)</label>
+            <input type="text" id="reqDelivery" placeholder="Ex: Rua das Flores, 123">
 
             <label style="color:var(--text-muted);">Valor Ofertado (R$)</label>
             <input type="number" id="reqValue" placeholder="0,00">
@@ -252,36 +255,49 @@
 
 <div id="jobModal" class="provider-modal">
     <button class="close-modal" onclick="closeJobModal()">×</button>
-    
-    <div class="vehicle-icon-large">
-        <i class="fas fa-leaf"></i>
-    </div>
-    
+    <div class="vehicle-icon-large"><i class="fas fa-leaf"></i></div>
     <div class="modal-title">Novo Serviço!</div>
-    <div class="modal-subtitle">Solicitação de <span id="jobClientName">...</span></div>
-
+    
     <div class="job-detail-row">
         <span class="job-label">Serviço</span>
         <span class="job-value" id="jobDesc">...</span>
     </div>
     <div class="job-detail-row">
-        <span class="job-label">Local</span>
-        <span class="job-value" id="jobLocation" style="font-size:0.9rem;">...</span>
+        <span class="job-label">Pegar em (Origem)</span>
+        <span class="job-value" id="jobPickup">...</span>
     </div>
     <div class="job-detail-row">
-        <span class="job-label">Veículo Pedido</span>
-        <span class="job-value" id="jobTransport">...</span>
+        <span class="job-label">Entregar em (Destino)</span>
+        <span class="job-value" id="jobDelivery">...</span>
     </div>
     <div class="job-detail-row" style="background:rgba(0,255,136,0.1); border:1px solid var(--primary);">
         <span class="job-label" style="color:var(--primary);">VALOR</span>
         <span class="job-price" id="jobValue">R$ 0,00</span>
     </div>
 
-    <button class="btn btn-primary" onclick="acceptJob()">
-        <i class="fas fa-map-marker-alt"></i> ACEITAR E ABRIR MAPA
+    <button class="btn btn-primary" onclick="acceptJobStep1()">
+        <i class="fas fa-check-circle"></i> ACEITAR SERVIÇO
     </button>
     <button class="btn" style="background:transparent; border:1px solid #ff4757; color:#ff4757;" onclick="closeJobModal()">
         RECUSAR
+    </button>
+</div>
+
+<div id="contactModal" class="provider-modal">
+    <div class="vehicle-icon-large" style="border-color:#fff; color:#fff;"><i class="fas fa-user"></i></div>
+    <div class="modal-title">Dados do Contratante</div>
+    <div class="modal-subtitle" style="margin-bottom:30px;">Entre em contato antes de ir!</div>
+
+    <h2 id="contactName" style="color:var(--primary); margin-bottom:20px;">Maria Silva</h2>
+
+    <a href="#" id="contactWhatsapp" target="_blank" class="btn btn-whatsapp">
+        <i class="fab fa-whatsapp"></i> CHAMAR NO WHATSAPP
+    </a>
+
+    <div style="margin: 20px 0; width:100%; border-top:1px solid var(--border);"></div>
+
+    <button class="btn btn-primary" onclick="startNavigation()">
+        <i class="fas fa-map-marked-alt"></i> CONFIRMAR E IR P/ MAPA
     </button>
 </div>
 
@@ -290,21 +306,19 @@
     <div class="vehicle-icon-large"><i class="fas fa-leaf"></i></div>
     <div class="provider-name" id="detName">Prestador</div>
     <div class="provider-service" id="detVehicle">Veículo</div>
-    <a href="#" id="detWhatsapp" target="_blank" class="btn btn-primary" style="background:#25D366; color:white; margin-bottom:0;">
+    <a href="#" id="detWhatsapp" target="_blank" class="btn btn-whatsapp">
         <i class="fab fa-whatsapp"></i> CHAMAR NO WHATSAPP
     </a>
 </div>
 
 <div class="radar-screen" id="radar">
-    <div class="radar-circle">
-        <div class="radar-scan"></div>
-    </div>
+    <div class="radar-circle"><div class="radar-scan"></div></div>
     <div class="radar-text" id="radarText">VARRENDO ÁREA...</div>
 </div>
 
 <script>
-    // --- CONFIGURAÇÃO ---
-    const firebaseConfig = { apiKey: "API_KEY", authDomain: "APP.firebase", projectId: "ID" }; // Placeholder
+    // --- CONFIG ---
+    const firebaseConfig = { apiKey: "API_KEY", authDomain: "APP.firebase", projectId: "ID" };
     try { firebase.initializeApp(firebaseConfig); } catch(e) { console.log("Offline Mode"); }
 
     // --- ESTADO ---
@@ -312,7 +326,7 @@
     let selectedRole = 'client';
     let searchAttempts = 0;
     let map = null;
-    let currentJob = null; // Para armazenar o pedido atual no lado do prestador
+    let currentJob = null; 
 
     // --- SETUP ---
     document.addEventListener('DOMContentLoaded', () => {
@@ -356,16 +370,19 @@
     // --- BUSCA (CLIENTE) ---
     function startSearchLogic() {
         const desc = document.getElementById('serviceDesc').value;
-        const loc = document.getElementById('reqLocation').value;
+        const pickup = document.getElementById('reqPickup').value;
+        const delivery = document.getElementById('reqDelivery').value;
         const val = document.getElementById('reqValue').value;
         
-        if(!desc || !loc || !val) return Swal.fire('Ops', 'Preencha todos os campos!', 'warning');
+        if(!desc || !pickup || !delivery || !val) return Swal.fire('Ops', 'Preencha todos os campos!', 'warning');
 
-        // Salva dados do pedido para simulação
+        // Salva job simulado
         localStorage.setItem('lastJob', JSON.stringify({
             client: currentUser.name,
+            clientPhone: currentUser.phone, // Salva telefone para contato
             desc: desc,
-            loc: loc,
+            pickup: pickup,
+            delivery: delivery,
             transport: document.getElementById('reqTransport').value,
             value: val
         }));
@@ -394,11 +411,13 @@
     // --- PRESTADOR (SIMULAÇÃO) ---
     function simulateProviderActivity() {
         setTimeout(() => {
-            // Recupera pedido simulado ou cria um genérico
             let job = JSON.parse(localStorage.getItem('lastJob'));
-            if(!job) job = { client: "Maria", desc: "Entrega Rápida", loc: "Centro", transport: "bike", value: "20" };
+            if(!job) job = { 
+                client: "Maria Silva", clientPhone: "(11) 99999-9999", 
+                desc: "Entrega Rápida", pickup: "Centro", delivery: "Bairro Alto", 
+                transport: "bike", value: "20" 
+            };
             
-            // Renderiza Card de Notificação
             const area = document.getElementById('providerStatusArea');
             area.innerHTML = `
                 <div class="glass-card" style="border-color:var(--primary); cursor:pointer;" onclick='openJobModal(${JSON.stringify(job)})'>
@@ -410,8 +429,6 @@
                     <small style="color:#aaa;">Toque para ver detalhes</small>
                 </div>
             `;
-            // Som de notificação
-            // const audio = new Audio('notification.mp3'); audio.play().catch(e=>{});
         }, 5000);
     }
 
@@ -419,8 +436,8 @@
         currentJob = job;
         document.getElementById('jobClientName').innerText = job.client;
         document.getElementById('jobDesc').innerText = job.desc;
-        document.getElementById('jobLocation').innerText = job.loc;
-        document.getElementById('jobTransport').innerText = getVehicleName(job.transport);
+        document.getElementById('jobPickup').innerText = job.pickup;
+        document.getElementById('jobDelivery').innerText = job.delivery;
         document.getElementById('jobValue').innerText = "R$ " + parseFloat(job.value).toFixed(2);
         
         document.getElementById('jobModal').classList.add('show');
@@ -430,16 +447,32 @@
         document.getElementById('jobModal').classList.remove('show');
     }
 
-    function acceptJob() {
-        if(currentJob) {
-            // Abre Google Maps com a rota para o local (simulado)
-            const query = encodeURIComponent(currentJob.loc);
-            window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
-            closeJobModal();
-            Swal.fire('Aceito!', 'Boa corrida!', 'success');
-            // Reseta painel
-            document.getElementById('providerStatusArea').innerHTML = '<p>Em serviço...</p><button class="btn btn-primary" onclick="simulateProviderActivity()">Finalizar</button>';
-        }
+    // --- PASSO 1: ACEITAR E MOSTRAR CONTATO ---
+    function acceptJobStep1() {
+        closeJobModal();
+        
+        // Popula modal de contato
+        document.getElementById('contactName').innerText = currentJob.client;
+        const phoneClean = currentJob.clientPhone.replace(/\D/g, '');
+        document.getElementById('contactWhatsapp').href = `https://wa.me/55${phoneClean}?text=Olá, sou o prestador do GreenMatch! Aceitei seu pedido: ${currentJob.desc}.`;
+        
+        document.getElementById('contactModal').classList.add('show');
+    }
+
+    // --- PASSO 2: IR PARA NAVEGAÇÃO ---
+    function startNavigation() {
+        document.getElementById('contactModal').classList.remove('show');
+        
+        // Monta rota no Google Maps (Origem -> Destino)
+        const origin = encodeURIComponent(currentJob.pickup);
+        const dest = encodeURIComponent(currentJob.delivery);
+        const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}&travelmode=driving`;
+        
+        window.open(url, '_blank');
+        
+        // Reseta tela do prestador
+        Swal.fire({title:'Bom trabalho!', text:'Navegação iniciada.', icon:'success', confirmButtonColor:'#00ff88'});
+        document.getElementById('providerStatusArea').innerHTML = '<p>Em serviço...</p><button class="btn btn-primary" onclick="simulateProviderActivity()">Finalizar</button>';
     }
 
     // --- MAPA ---
@@ -456,16 +489,11 @@
     function initMap() {
         if(map) map.remove();
         map = L.map('map').setView([-23.5505, -46.6333], 13);
-        
-        // COR ORIGINAL (OpenStreetMap)
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap'
-        }).addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
 
         if(navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(pos => {
-                const lat = pos.coords.latitude;
-                const lng = pos.coords.longitude;
+                const lat = pos.coords.latitude; const lng = pos.coords.longitude;
                 map.setView([lat, lng], 14);
                 L.marker([lat, lng]).addTo(map).bindPopup("Você").openPopup();
                 generateProviders(lat, lng);
@@ -474,25 +502,16 @@
     }
 
     function generateProviders(lat, lng) {
-        // Gera prestadores com ícone de FOLHA
         for(let i=0; i<5; i++) {
             const pLat = lat + (Math.random() - 0.5) * 0.03;
             const pLng = lng + (Math.random() - 0.5) * 0.03;
-            
             const mapIcon = L.divIcon({
                 className: 'custom-pin',
                 html: `<div style="background:#00ff88; width:35px; height:35px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow:0 0 10px rgba(0,0,0,0.5); font-size:18px; color:#051c10;"><i class="fas fa-leaf"></i></div>`,
                 iconSize: [35, 35]
             });
-
             const marker = L.marker([pLat, pLng], {icon: mapIcon}).addTo(map);
-            
-            const pData = {
-                name: `Prestador Eco ${i+1}`,
-                vehicle: "Bike Elétrica",
-                phone: "5511999999999"
-            };
-            
+            const pData = { name: `Prestador Eco ${i+1}`, vehicle: "Bike Elétrica", phone: "5511999999999" };
             marker.on('click', () => openProviderDetailModal(pData));
         }
     }
@@ -504,9 +523,7 @@
         document.getElementById('providerDetailModal').classList.add('show');
     }
 
-    function closeProviderDetailModal() {
-        document.getElementById('providerDetailModal').classList.remove('show');
-    }
+    function closeProviderDetailModal() { document.getElementById('providerDetailModal').classList.remove('show'); }
 
     // --- UTIL ---
     function switchScreen(id) {
@@ -519,7 +536,6 @@
         return map[v] || v;
     }
     
-    // Animação Pulse CSS
     const style = document.createElement('style');
     style.innerHTML = `@keyframes pulse { 0% { transform: scale(1); opacity:1; } 50% { transform: scale(1.1); opacity:0.8; } 100% { transform: scale(1); opacity:1; } }`;
     document.head.appendChild(style);
